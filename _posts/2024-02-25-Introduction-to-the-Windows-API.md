@@ -1,3 +1,17 @@
+---
+layout: single
+title: Introduction to the Windows API
+date: 2024-02-25
+classes: wide
+header:
+  teaser: /assets/images/slae32.png
+categories:
+  - slae
+  - infosec
+tags:
+  - windows
+  - maldev
+---
 ### Introduction
 
 The Windows API provides developers with a way for their applications to interact with the Windows operating system. For example, if the application needs to display something on the screen, modify a file or query the registry all of these actions can be done via the Windows API. The Windows API is very well documented by Microsoft and can be viewed [here](https://learn.microsoft.com/en-us/windows/win32/apiindex/windows-api-list).
