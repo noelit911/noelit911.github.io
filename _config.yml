@@ -16,11 +16,11 @@ minimal_mistakes_skin    : "haxor" # "air", "aqua", "contrast", "dark", "dirt", 
 
 # Site Settings
 locale                   : "en-US"
-title                    : "Invertebrado | Hacking - Ciberseguridad"
+title                    : "noelit911 | Cybersecurity"
 title_separator          : "-"
-name                     : "Invertebrado"
+name                     : "noelit"
 description              : "Posts sobre ciberseguridad y hacking ético"
-url                      : "https://Invertebr4do.github.io" # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
+url                      : "https://noelit911.github.io" # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : "slemire/slemire.github.io" # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
 logo                     : "/assets/images/masthead.png"
@@ -101,11 +101,11 @@ analytics:
 
 # Site Author
 author:
-  name             : "Invertebrado"
-  avatar           : "/assets/images/Perfil.png"
-  bio              : "HackTheBox, TryHackMe, <br>Herramientas, Tutoriales"
-  location         : "Colombia"
-  email            : "invertebr4do@gmail.com"
+  name             : "noelit911"
+  avatar           : "/assets/images/avatar.png"
+  bio              : ""
+  location         : "Spain"
+  email            : "noelit911@gmail.com"
   uri              :
   home             : # null (default), "absolute or relative url to link to author home"
   bitbucket        :
@@ -131,10 +131,6 @@ author:
   weibo            :
   xing             :
   youtube          : # "https://youtube.com/c/Invertebr4do"
-  links:
-    - label: "Donar"
-      icon: "fab fa-fw fa-paypal"
-      url: "https://www.paypal.com/paypalme/Invertebrado"
 
 
 # Reading Files
@@ -212,7 +208,6 @@ plugins:
   - jekyll-sitemap
   - jekyll-gist
   - jekyll-feed
-  - jemoji
   - jekyll-include-cache
 
 # mimic GitHub Pages with --safe
@@ -221,7 +216,6 @@ whitelist:
   - jekyll-sitemap
   - jekyll-gist
   - jekyll-feed
-  - jemoji
 
 
 # Archives
