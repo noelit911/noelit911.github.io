@@ -46,7 +46,7 @@ In this hands-on section, we'll explore how to implement DLL injection using C c
 
  First, we need to open a handle to the target process to enable access to its memory space. Then, we reserve space within the target process to store the path of the DLL to be injected. Subsequently, the DLL path is written into this allocated memory space. Finally, a new thread is created within the target process, with its execution directed to a function that loads the DLL into the process's memory space. As a result, the injected DLL becomes part of the target process's execution, enabling it to modify the process's behavior or extend its functionality as desired. In the following section we will see which WinAPI functions do we need to perform such tasks. 
 
-##   WinAPI Functions
+## WinAPI Functions
 
 - [**CreateToolhelp32Snapshot()**](https://docs.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-createtoolhelp32snapshot): This function is used to create a snapshot of the current system's processes, allowing us to enumerate and find the target process by name.
 
@@ -67,51 +67,27 @@ In this hands-on section, we'll explore how to implement DLL injection using C c
 #include <windows.h>
 #include <stdio.h>
 
+// Function prototypes
+HANDLE FindTargetProcessByName(const char* targetProcessName);
+LPVOID AllocateMemoryInTargetProcess(HANDLE hProcess, const char* dllPath);
+BOOL InjectDllIntoProcess(HANDLE hProcess, LPVOID allocMemAddr, HMODULE hKernel32, const char* dllPath);
+void CleanupResources(HANDLE hProcess, LPVOID allocMemAddr, HANDLE hRemoteThread);
+
 int main() {
-    char* targetProcessName = "targetProcess.exe"; // Change this to the name of the target process
+    const char* targetProcessName = "targetProcess.exe"; // Change this to the name of the target process
+    const char* dllPath = "C:\\path\\to\\your\\injected.dll"; // Change this to the path of your DLL
 
     // Find the target process by name
-    HANDLE hProcess = NULL;
-    PROCESSENTRY32 pe32;
-    pe32.dwSize = sizeof(PROCESSENTRY32);
-    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (hSnapshot == INVALID_HANDLE_VALUE) {
-        printf("Error: Unable to create process snapshot.\n");
-        return 1;
-    }
-
-    if (Process32First(hSnapshot, &pe32)) {
-        do {
-            if (strcmp(pe32.szExeFile, targetProcessName) == 0) {
-                hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
-                if (hProcess != NULL) {
-                    break;
-                }
-            }
-        } while (Process32Next(hSnapshot, &pe32));
-    }
-
+    HANDLE hProcess = FindTargetProcessByName(targetProcessName);
     if (hProcess == NULL) {
         printf("Error: Target process not found.\n");
-        CloseHandle(hSnapshot);
         return 1;
     }
 
-    CloseHandle(hSnapshot);
-
-    // Allocate memory for the DLL path in the target process
-    char* dllPath = "C:\\path\\to\\your\\injected.dll"; // Change this to the path of your DLL
-    LPVOID allocMemAddr = VirtualAllocEx(hProcess, NULL, strlen(dllPath) + 1, MEM_COMMIT, PAGE_READWRITE);
+    // Allocate memory in the target process for the DLL path
+    LPVOID allocMemAddr = AllocateMemoryInTargetProcess(hProcess, dllPath);
     if (allocMemAddr == NULL) {
         printf("Error: Failed to allocate memory in target process.\n");
-        CloseHandle(hProcess);
-        return 1;
-    }
-
-    // Write the DLL path into the target process's memory
-    if (!WriteProcessMemory(hProcess, allocMemAddr, dllPath, strlen(dllPath) + 1, NULL)) {
-        printf("Error: Failed to write DLL path into target process's memory.\n");
-        VirtualFreeEx(hProcess, allocMemAddr, 0, MEM_RELEASE);
         CloseHandle(hProcess);
         return 1;
     }
@@ -120,38 +96,88 @@ int main() {
     HMODULE hKernel32 = GetModuleHandle("kernel32.dll");
     if (hKernel32 == NULL) {
         printf("Error: Failed to get handle to kernel32.dll.\n");
-        VirtualFreeEx(hProcess, allocMemAddr, 0, MEM_RELEASE);
-        CloseHandle(hProcess);
+        CleanupResources(hProcess, allocMemAddr, NULL);
         return 1;
     }
 
-    LPVOID loadLibraryAddr = GetProcAddress(hKernel32, "LoadLibraryA");
-    if (loadLibraryAddr == NULL) {
-        printf("Error: Failed to get address of LoadLibraryA.\n");
-        VirtualFreeEx(hProcess, allocMemAddr, 0, MEM_RELEASE);
-        CloseHandle(hProcess);
-        return 1;
-    }
-
-    // Create remote thread in the target process to load the DLL
-    HANDLE hRemoteThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)loadLibraryAddr, allocMemAddr, 0, NULL);
-    if (hRemoteThread == NULL) {
-        printf("Error: Failed to create remote thread in target process.\n");
-        VirtualFreeEx(hProcess, allocMemAddr, 0, MEM_RELEASE);
-        CloseHandle(hProcess);
+    // Inject the DLL into the target process
+    if (!InjectDllIntoProcess(hProcess, allocMemAddr, hKernel32, dllPath)) {
+        printf("Error: Failed to inject DLL into target process.\n");
+        CleanupResources(hProcess, allocMemAddr, NULL);
         return 1;
     }
 
     printf("DLL injected successfully.\n");
 
     // Clean up
-    WaitForSingleObject(hRemoteThread, INFINITE);
-    VirtualFreeEx(hProcess, allocMemAddr, 0, MEM_RELEASE);
-    CloseHandle(hRemoteThread);
-    CloseHandle(hProcess);
-
+    CleanupResources(hProcess, allocMemAddr, NULL);
     return 0;
+}
+
+// Finds the target process by name
+HANDLE FindTargetProcessByName(const char* targetProcessName) {
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnapshot == INVALID_HANDLE_VALUE) {
+        return NULL;
+    }
+
+    if (Process32First(hSnapshot, &pe32)) {
+        do {
+            if (strcmp(pe32.szExeFile, targetProcessName) == 0) {
+                CloseHandle(hSnapshot);
+                return OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
+            }
+        } while (Process32Next(hSnapshot, &pe32));
+    }
+
+    CloseHandle(hSnapshot);
+    return NULL;
+}
+
+// Allocates memory in the target process for the DLL path
+LPVOID AllocateMemoryInTargetProcess(HANDLE hProcess, const char* dllPath) {
+    return VirtualAllocEx(hProcess, NULL, strlen(dllPath) + 1, MEM_COMMIT, PAGE_READWRITE);
+}
+
+// Injects the DLL into the target process
+BOOL InjectDllIntoProcess(HANDLE hProcess, LPVOID allocMemAddr, HMODULE hKernel32, const char* dllPath) {
+    if (!WriteProcessMemory(hProcess, allocMemAddr, dllPath, strlen(dllPath) + 1, NULL)) {
+        return FALSE;
+    }
+
+    LPVOID loadLibraryAddr = GetProcAddress(hKernel32, "LoadLibraryA");
+    if (loadLibraryAddr == NULL) {
+        return FALSE;
+    }
+
+    HANDLE hRemoteThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)loadLibraryAddr, allocMemAddr, 0, NULL);
+    if (hRemoteThread == NULL) {
+        return FALSE;
+    }
+
+    WaitForSingleObject(hRemoteThread, INFINITE);
+    CloseHandle(hRemoteThread);
+    return TRUE;
+}
+
+// Cleans up resources
+void CleanupResources(HANDLE hProcess, LPVOID allocMemAddr, HANDLE hRemoteThread) {
+    if (hProcess != NULL) {
+        CloseHandle(hProcess);
+    }
+    if (allocMemAddr != NULL) {
+        VirtualFreeEx(hProcess, allocMemAddr, 0, MEM_RELEASE);
+    }
+    if (hRemoteThread != NULL) {
+        CloseHandle(hRemoteThread);
+    }
 }
 ```
 
 Replace `"targetProcess.exe"` with the name of the target process you want to inject the DLL into, and `"C:\\path\\to\\your\\injected.dll"` with the path to the DLL you want to inject.
+
+# Conclusion
+
+DLL injection is a powerful technique with both legitimate and malicious applications. While it offers benefits such as extending the functionality of applications and facilitating system monitoring and debugging, it also poses significant security risks when exploited by malicious actors. Understanding the mechanics of DLL injection, including the various injection methods and the Windows API functions involved, is essential for both software developers and cybersecurity professionals. By implementing robust security measures, such as access controls, code signing, and runtime monitoring, developers can mitigate the risks associated with DLL injection and ensure the integrity and security of their software systems. Additionally, security professionals must remain vigilant and employ detection and mitigation strategies to defend against DLL injection attacks and safeguard critical systems and data. Ultimately, responsible use and comprehensive defense mechanisms are crucial for effectively managing the complexities of DLL injection in today's digital landscape.
