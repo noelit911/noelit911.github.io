@@ -1,7 +1,7 @@
 ---
 layout: single
 title: "Payload Unleashed: DLL Injection"
-date: 2024-02-28
+date: 2024-02-29
 classes: wide
 header:
   teaser: /assets/images/maldev.png
@@ -11,6 +11,7 @@ tags:
   - windows
   - malware
 ---
+This is the first episode of the  "Unraveling the Malware Mysteries" series. Check out the entire series at https://noelit911.github.io/Unraveling-the-Malware-Mysteries/
 
 Dynamic Link Library (DLL) injection is a technique used in the realm of software development and cybersecurity. It involves inserting a DLL into the address space of a running process, thereby altering its behavior or extending its functionality. While primarily used for legitimate purposes such as debugging and system monitoring, DLL injection can also be leveraged for malicious activities like code execution and privilege escalation. 
 
