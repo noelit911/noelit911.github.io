@@ -4,7 +4,7 @@ title: Introduction to the Windows API
 date: 2024-02-25
 classes: wide
 header:
-  teaser: /assets/images/slae32.png
+  teaser: /assets/images/maldev.png
 categories:
   - slae
   - infosec
