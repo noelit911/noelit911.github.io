@@ -96,6 +96,7 @@ Replace `popup.cpp` with the filename of your source code file if it's different
 ```c
 #include <windows.h>
 #include <stdio.h>
+#include <Tlhelp32.h>
 
 // Function prototypes
 HANDLE FindTargetProcessByName(const char* targetProcessName);
