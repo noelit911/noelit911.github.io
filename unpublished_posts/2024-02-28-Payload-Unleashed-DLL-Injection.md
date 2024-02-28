@@ -40,18 +40,21 @@ DLL injection techniques can be classified into several categories, each with it
 
 # Hands-On: Implementing DLL Injection in C
 
-In this hands-on section, we'll explore how to implement DLL injection using C# code. We'll focus on run-time injection, which involves injecting a DLL into a running process. For this demonstration, we'll create a simple console application to perform the injection.
+In this hands-on section, we'll explore how to implement DLL injection using C code. We'll focus on run-time injection, which involves injecting a DLL into a running process. For this demonstration, we'll create a simple console application to perform the injection.
 
-Prerequisites:
-- Basic understanding of C# programming language
-- Visual Studio or any other C# IDE installed on your system
+To carry out this section we will need to import the following functions from the kernel32.dll:
+- OpenProcess(): This function is used to obtain a handle to the target process, which is required for various operations such as reading and writing memory or creating remote threads within the target process.
 
-Steps:
+- GetModuleHandle(): It retrieves a handle to the specified module within the calling process. In this case, it's used to get a handle to the kernel32.dll module to obtain the address of the LoadLibraryA function.
 
-1. Create a new C# console application project in Visual Studio.
-2. Name the project "DLLInjectionDemo" and click "OK" to create the project.
-3. Once the project is created, open the Program.cs file.
-4. Replace the existing code with the following code:
+- GetProcAddress(): This function retrieves the address of an exported function or variable from a specified dynamic-link library (DLL) module. Here, it's used to get the address of the LoadLibraryA function within the kernel32.dll module.
+
+- VirtualAllocEx(): It is used to reserve or commit a region of memory within the virtual address space of the target process. In this code, it allocates memory within the target process to store the path of the DLL to be injected.
+
+- WriteProcessMemory(): This function writes data to an area of memory in a specified process. Here, it writes the path of the DLL to be injected into the allocated memory space within the target process.
+
+- CreateRemoteThread(): This function creates a new thread in the address space of the target process, starting execution at the specified address. In this code, it creates a remote thread within the target process to execute the LoadLibraryA function, effectively loading the DLL into the target process.
+
 
 ```c
 using System;
