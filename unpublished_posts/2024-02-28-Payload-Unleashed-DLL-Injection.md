@@ -44,103 +44,114 @@ In this hands-on section, we'll explore how to implement DLL injection using C c
 
 ## Overall process
 
- First, we need to open a handle to the target process to enable access to its memory space. Then, we reserve space within the target process to store the path of the DLL to be injected. Subsequently, the DLL path is written into this allocated memory space. Finally, a new thread is created within the target process, with its execution directed to a function that loads the DLL into the process's memory space. As a result, the injected DLL becomes part of the target process's execution, enabling it to modify the process's behavior or extend its functionality as desired. In the following section we will see which C functions do we need to perform such tasks. 
+ First, we need to open a handle to the target process to enable access to its memory space. Then, we reserve space within the target process to store the path of the DLL to be injected. Subsequently, the DLL path is written into this allocated memory space. Finally, a new thread is created within the target process, with its execution directed to a function that loads the DLL into the process's memory space. As a result, the injected DLL becomes part of the target process's execution, enabling it to modify the process's behavior or extend its functionality as desired. In the following section we will see which WinAPI functions do we need to perform such tasks. 
 
-##  Kernel32.dll functions
+##   WinAPI Functions
 
-- **OpenProcess()**: This function is used to obtain a handle to the target process, which is required for various operations such as reading and writing memory or creating remote threads within the target process.
+- [**CreateToolhelp32Snapshot()**](https://docs.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-createtoolhelp32snapshot): This function is used to create a snapshot of the current system's processes, allowing us to enumerate and find the target process by name.
 
-- **GetModuleHandle()**: It retrieves a handle to the specified module within the calling process. In this case, it's used to get a handle to the kernel32.dll module to obtain the address of the LoadLibraryA function.
+- [**Process32First()**](https://docs.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-process32first) and [**Process32Next()**](https://docs.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-process32next): These functions are used to retrieve information about processes in the system, allowing us to iterate through the processes obtained from the snapshot to find the target process by name.
 
-- **GetProcAddress()**: This function retrieves the address of an exported function or variable from a specified dynamic-link library (DLL) module. Here, it's used to get the address of the LoadLibraryA function within the kernel32.dll module.
+- [**OpenProcess()**](https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-openprocess): This function opens an existing process object, which is necessary to perform operations such as memory allocation and writing within the target process.
 
-- **VirtualAllocEx()**: It is used to reserve or commit a region of memory within the virtual address space of the target process. In this code, it allocates memory within the target process to store the path of the DLL to be injected.
+- [**VirtualAllocEx()**](https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualallocex): Used to allocate memory within the address space of a specified process, allowing us to reserve space in the target process to store the path of the DLL to be injected.
 
-- **WriteProcessMemory()**: This function writes data to an area of memory in a specified process. Here, it writes the path of the DLL to be injected into the allocated memory space within the target process.
+- [**WriteProcessMemory()**](https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-writeprocessmemory): This function writes data to an area of memory in a specified process, enabling us to write the path of the DLL into the allocated memory space within the target process.
 
-- **CreateRemoteThread()**: This function creates a new thread in the address space of the target process, starting execution at the specified address. In this code, it creates a remote thread within the target process to execute the LoadLibraryA function, effectively loading the DLL into the target process.
+- [**GetModuleHandle()**](https://docs.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getmodulehandlea) and [**GetProcAddress()**](https://docs.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getprocaddress): GetModuleHandle retrieves handles to modules, and GetProcAddress retrieves the addresses of exported functions from specified modules, respectively. In this case, they are used to obtain the handle to kernel32.dll and the address of the LoadLibraryA function within kernel32.dll, allowing us to load the DLL into the target process.
+
+- [**CreateRemoteThread()**](https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createremotethread): This function creates a thread in the address space of another process and begins its execution. We use it to create a remote thread within the target process to execute the LoadLibraryA function, effectively loading the DLL into the target process.
 
 
 ```c
-using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+#include <windows.h>
+#include <stdio.h>
 
-namespace DLLInjectionDemo
-{
-    class Program
-    {
-        // Import necessary Win32 API functions
-        [DllImport("kernel32.dll")]
-        static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+int main() {
+    char* targetProcessName = "targetProcess.exe"; // Change this to the name of the target process
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
-        static extern IntPtr GetModuleHandle(string lpModuleName);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, uint nSize, out UIntPtr lpNumberOfBytesWritten);
-
-        [DllImport("kernel32.dll")]
-        static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
-
-        static void Main(string[] args)
-        {
-            string targetProcessName = "targetProcess.exe"; // Change this to the name of the target process
-
-            // Find the target process by name
-            Process[] processes = Process.GetProcessesByName(targetProcessName);
-            if (processes.Length == 0)
-            {
-                Console.WriteLine("Target process not found.");
-                return;
-            }
-
-            Process targetProcess = processes[0];
-
-            // Get the handle of the target process
-            IntPtr processHandle = OpenProcess(0x1F0FFF, false, targetProcess.Id);
-            if (processHandle == IntPtr.Zero)
-            {
-                Console.WriteLine("Failed to open target process.");
-                return;
-            }
-
-            // Load the DLL into memory
-            string dllPath = "C:\\path\\to\\your\\injected.dll"; // Change this to the path of your DLL
-            IntPtr loadLibraryAddr = GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryA");
-            IntPtr allocMemAddr = VirtualAllocEx(processHandle, IntPtr.Zero, (uint)((dllPath.Length + 1) * Marshal.SizeOf(typeof(char))), 0x1000, 0x40);
-
-            // Write the DLL path into the target process's memory
-            UIntPtr bytesWritten;
-            WriteProcessMemory(processHandle, allocMemAddr, System.Text.Encoding.Default.GetBytes(dllPath), (uint)((dllPath.Length + 1) * Marshal.SizeOf(typeof(char))), out bytesWritten);
-
-            // Create a remote thread in the target process to load the DLL
-            CreateRemoteThread(processHandle, IntPtr.Zero, 0, loadLibraryAddr, allocMemAddr, 0, IntPtr.Zero);
-
-            Console.WriteLine("DLL injected successfully.");
-
-            // Close the handle to the target process
-            CloseHandle(processHandle);
-        }
-
-        // Import CloseHandle function
-        [DllImport("kernel32.dll")]
-        static extern bool CloseHandle(IntPtr hObject);
+    // Find the target process by name
+    HANDLE hProcess = NULL;
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnapshot == INVALID_HANDLE_VALUE) {
+        printf("Error: Unable to create process snapshot.\n");
+        return 1;
     }
+
+    if (Process32First(hSnapshot, &pe32)) {
+        do {
+            if (strcmp(pe32.szExeFile, targetProcessName) == 0) {
+                hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
+                if (hProcess != NULL) {
+                    break;
+                }
+            }
+        } while (Process32Next(hSnapshot, &pe32));
+    }
+
+    if (hProcess == NULL) {
+        printf("Error: Target process not found.\n");
+        CloseHandle(hSnapshot);
+        return 1;
+    }
+
+    CloseHandle(hSnapshot);
+
+    // Allocate memory for the DLL path in the target process
+    char* dllPath = "C:\\path\\to\\your\\injected.dll"; // Change this to the path of your DLL
+    LPVOID allocMemAddr = VirtualAllocEx(hProcess, NULL, strlen(dllPath) + 1, MEM_COMMIT, PAGE_READWRITE);
+    if (allocMemAddr == NULL) {
+        printf("Error: Failed to allocate memory in target process.\n");
+        CloseHandle(hProcess);
+        return 1;
+    }
+
+    // Write the DLL path into the target process's memory
+    if (!WriteProcessMemory(hProcess, allocMemAddr, dllPath, strlen(dllPath) + 1, NULL)) {
+        printf("Error: Failed to write DLL path into target process's memory.\n");
+        VirtualFreeEx(hProcess, allocMemAddr, 0, MEM_RELEASE);
+        CloseHandle(hProcess);
+        return 1;
+    }
+
+    // Load kernel32.dll and get the address of LoadLibraryA
+    HMODULE hKernel32 = GetModuleHandle("kernel32.dll");
+    if (hKernel32 == NULL) {
+        printf("Error: Failed to get handle to kernel32.dll.\n");
+        VirtualFreeEx(hProcess, allocMemAddr, 0, MEM_RELEASE);
+        CloseHandle(hProcess);
+        return 1;
+    }
+
+    LPVOID loadLibraryAddr = GetProcAddress(hKernel32, "LoadLibraryA");
+    if (loadLibraryAddr == NULL) {
+        printf("Error: Failed to get address of LoadLibraryA.\n");
+        VirtualFreeEx(hProcess, allocMemAddr, 0, MEM_RELEASE);
+        CloseHandle(hProcess);
+        return 1;
+    }
+
+    // Create remote thread in the target process to load the DLL
+    HANDLE hRemoteThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)loadLibraryAddr, allocMemAddr, 0, NULL);
+    if (hRemoteThread == NULL) {
+        printf("Error: Failed to create remote thread in target process.\n");
+        VirtualFreeEx(hProcess, allocMemAddr, 0, MEM_RELEASE);
+        CloseHandle(hProcess);
+        return 1;
+    }
+
+    printf("DLL injected successfully.\n");
+
+    // Clean up
+    WaitForSingleObject(hRemoteThread, INFINITE);
+    VirtualFreeEx(hProcess, allocMemAddr, 0, MEM_RELEASE);
+    CloseHandle(hRemoteThread);
+    CloseHandle(hProcess);
+
+    return 0;
 }
 ```
 
 Replace `"targetProcess.exe"` with the name of the target process you want to inject the DLL into, and `"C:\\path\\to\\your\\injected.dll"` with the path to the DLL you want to inject.
-
-5. Build the project to ensure there are no compilation errors.
-6. Run the console application. If the target process is found and the DLL injection is successful, you should see the message "DLL injected successfully."
-
-Note: Make sure to test the DLL injection code responsibly and only on processes you have permission to interact with. Unauthorized DLL injection into system processes or third-party applications can lead to system instability or security vulnerabilities.
-
-This hands-on example demonstrates the basics of DLL injection in C# using the Windows API functions. Further customization and error handling can be added based on specific requirements and scenarios.
