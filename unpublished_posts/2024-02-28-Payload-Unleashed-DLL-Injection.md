@@ -42,18 +42,23 @@ DLL injection techniques can be classified into several categories, each with it
 
 In this hands-on section, we'll explore how to implement DLL injection using C code. We'll focus on run-time injection, which involves injecting a DLL into a running process. For this demonstration, we'll create a simple console application to perform the injection.
 
-To carry out this section we will need to import the following functions from the kernel32.dll:
-- OpenProcess(): This function is used to obtain a handle to the target process, which is required for various operations such as reading and writing memory or creating remote threads within the target process.
+## Overall process
 
-- GetModuleHandle(): It retrieves a handle to the specified module within the calling process. In this case, it's used to get a handle to the kernel32.dll module to obtain the address of the LoadLibraryA function.
+ First, we need to open a handle to the target process to enable access to its memory space. Then, we reserve space within the target process to store the path of the DLL to be injected. Subsequently, the DLL path is written into this allocated memory space. Finally, a new thread is created within the target process, with its execution directed to a function that loads the DLL into the process's memory space. As a result, the injected DLL becomes part of the target process's execution, enabling it to modify the process's behavior or extend its functionality as desired. In the following section we will see 
 
-- GetProcAddress(): This function retrieves the address of an exported function or variable from a specified dynamic-link library (DLL) module. Here, it's used to get the address of the LoadLibraryA function within the kernel32.dll module.
+## Functions needed
 
-- VirtualAllocEx(): It is used to reserve or commit a region of memory within the virtual address space of the target process. In this code, it allocates memory within the target process to store the path of the DLL to be injected.
+- **OpenProcess()**: This function is used to obtain a handle to the target process, which is required for various operations such as reading and writing memory or creating remote threads within the target process.
 
-- WriteProcessMemory(): This function writes data to an area of memory in a specified process. Here, it writes the path of the DLL to be injected into the allocated memory space within the target process.
+- **GetModuleHandle()**: It retrieves a handle to the specified module within the calling process. In this case, it's used to get a handle to the kernel32.dll module to obtain the address of the LoadLibraryA function.
 
-- CreateRemoteThread(): This function creates a new thread in the address space of the target process, starting execution at the specified address. In this code, it creates a remote thread within the target process to execute the LoadLibraryA function, effectively loading the DLL into the target process.
+- **GetProcAddress()**: This function retrieves the address of an exported function or variable from a specified dynamic-link library (DLL) module. Here, it's used to get the address of the LoadLibraryA function within the kernel32.dll module.
+
+- **VirtualAllocEx()**: It is used to reserve or commit a region of memory within the virtual address space of the target process. In this code, it allocates memory within the target process to store the path of the DLL to be injected.
+
+- **WriteProcessMemory()**: This function writes data to an area of memory in a specified process. Here, it writes the path of the DLL to be injected into the allocated memory space within the target process.
+
+- **CreateRemoteThread()**: This function creates a new thread in the address space of the target process, starting execution at the specified address. In this code, it creates a remote thread within the target process to execute the LoadLibraryA function, effectively loading the DLL into the target process.
 
 
 ```c
