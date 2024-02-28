@@ -44,9 +44,9 @@ In this hands-on section, we'll explore how to implement DLL injection using C c
 
 ## Overall process
 
- First, we need to open a handle to the target process to enable access to its memory space. Then, we reserve space within the target process to store the path of the DLL to be injected. Subsequently, the DLL path is written into this allocated memory space. Finally, a new thread is created within the target process, with its execution directed to a function that loads the DLL into the process's memory space. As a result, the injected DLL becomes part of the target process's execution, enabling it to modify the process's behavior or extend its functionality as desired. In the following section we will see 
+ First, we need to open a handle to the target process to enable access to its memory space. Then, we reserve space within the target process to store the path of the DLL to be injected. Subsequently, the DLL path is written into this allocated memory space. Finally, a new thread is created within the target process, with its execution directed to a function that loads the DLL into the process's memory space. As a result, the injected DLL becomes part of the target process's execution, enabling it to modify the process's behavior or extend its functionality as desired. In the following section we will see which C functions do we need to perform such tasks. 
 
-## Functions needed
+##  Kernel32.dll functions
 
 - **OpenProcess()**: This function is used to obtain a handle to the target process, which is required for various operations such as reading and writing memory or creating remote threads within the target process.
 
