@@ -44,8 +44,38 @@ In this hands-on section, we'll explore how to implement DLL injection using C c
 
 ## Overall process
 
- First, we need to open a handle to the target process to enable access to its memory space. Then, we reserve space within the target process to store the path of the DLL to be injected. Subsequently, the DLL path is written into this allocated memory space. Finally, a new thread is created within the target process, with its execution directed to a function that loads the DLL into the process's memory space. As a result, the injected DLL becomes part of the target process's execution, enabling it to modify the process's behavior or extend its functionality as desired. In the following section we will see which WinAPI functions do we need to perform such tasks. 
+ First, we need to open a handle to the target process to enable access to its memory space. Then, we reserve space within the target process to store the path of the DLL to be injected. Subsequently, the DLL path is written into this allocated memory space. Finally, a new thread is created within the target process, with its execution directed to a function that loads the DLL into the process's memory space. As a result, the injected DLL becomes part of the target process's execution, enabling it to modify the process's behavior or extend its functionality as desired. 
 
+## Creating the DLL
+
+Below is a simple example of a DLL written in C that opens a popup window when loaded. This DLL utilizes the Windows API functions to create and display a basic message box. We will use this dll for testing purposes:
+
+```c
+#include <Windows.h>
+
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {
+    switch (ul_reason_for_call) {
+    case DLL_PROCESS_ATTACH:
+        MessageBox(NULL, "DLL Loaded!", "DLL Popup", MB_OK | MB_ICONINFORMATION);
+        break;
+    case DLL_THREAD_ATTACH:
+    case DLL_THREAD_DETACH:
+    case DLL_PROCESS_DETACH:
+        break;
+    }
+    return TRUE;
+}
+```
+
+This DLL consists of a single function, `DllMain`, which is called automatically when the DLL is loaded and unloaded. When the DLL is loaded (`DLL_PROCESS_ATTACH`), it displays a message box with the title "DLL Popup" and the message "DLL Loaded!". The `MB_OK | MB_ICONINFORMATION` flags specify that the message box should contain an OK button and an information icon.
+
+To compile this code into a DLL, you can use a C++ compiler such as Microsoft Visual Studio or MinGW. Here's how you can compile it using MinGW:
+
+```bash
+g++ -shared -o popup.dll popup.cpp -Wl,--out-implib,libpopup.a
+```
+
+Replace `popup.cpp` with the filename of your source code file if it's different. After compiling, you'll have a `popup.dll` file that you can load into a process to trigger the popup window.
 ## WinAPI Functions
 
 - [**CreateToolhelp32Snapshot()**](https://docs.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-createtoolhelp32snapshot): This function is used to create a snapshot of the current system's processes, allowing us to enumerate and find the target process by name.
