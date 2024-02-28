@@ -6,7 +6,6 @@ classes: wide
 header:
   teaser: /assets/images/maldev.png
 categories:
-  - slae
   - infosec
 tags:
   - windows
@@ -14,12 +13,12 @@ tags:
 ---
 ### Introduction
 
-The Windows API provides developers with a way for their applications to interact with the Windows operating system. For example, if the application needs to display something on the screen, modify a file or query the registry all of these actions can be done via the Windows API. The Windows API is very well documented by Microsoft and can be viewed [here](https://learn.microsoft.com/en-us/windows/win32/apiindex/windows-api-list).
+The Windows API (Application Programming Interface) serves as a crucial bridge for developers, enabling their applications to interact seamlessly with the Windows operating system. Whether it's displaying content on the screen, manipulating files, or accessing registry information, the Windows API provides a robust framework for such tasks. Microsoft offers extensive documentation for the Windows API, which can be accessed [here](https://learn.microsoft.com/en-us/windows/win32/apiindex/windows-api-list).
 
 ### Windows Data Types
 
 The Windows API has many data types outside of the well-known ones (e.g. int, float). The data types are documented and can be viewed [here](https://learn.microsoft.com/en-us/windows/win32/winprog/windows-data-types).
-
+z
 Some of the common data types are listed below:
 
 - `DWORD` - A 32-bit unsigned integer, on both 32-bit and 64-bit systems, used to represent values from 0 up to (2^32 - 1).
