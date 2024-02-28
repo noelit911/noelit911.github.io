@@ -1,4 +1,3 @@
-# **"Leaky Vessels" - Vulnerabilidades de Escape en Contenedores de Docker y runc**
 
 Investigadores de seguridad de Snyk, liderados por Rory McNamara del equipo Snyk Security Labs, identificaron **cuatro vulnerabilidades** denominadas "Leaky Vessels" en componentes fundamentales de la infraestructura de contenedores que permiten **escapes de contenedores**. Estas vulnerabilidades podrían ser utilizadas por un atacante para obtener acceso no autorizado al sistema operativo subyacente desde dentro del contenedor, potencialmente comprometiendo datos sensibles y permitiendo ataques adicionales. 
 

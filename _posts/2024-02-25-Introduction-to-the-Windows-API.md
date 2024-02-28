@@ -11,7 +11,6 @@ tags:
   - windows
   - maldev
 ---
-### Introduction
 
 The Windows API (Application Programming Interface) serves as a crucial bridge for developers, enabling their applications to interact seamlessly with the Windows operating system. Whether it's displaying content on the screen, manipulating files, or accessing registry information, the Windows API provides a robust framework for such tasks. Microsoft offers extensive documentation for the Windows API, which can be accessed [here](https://learn.microsoft.com/en-us/windows/win32/apiindex/windows-api-list).
 
