@@ -118,9 +118,9 @@ int main()
 
 This code snippet encapsulates the entire process of APC injection, from opening the target process to executing the malicious payload within its context. 
 
-There are other types of techniques to implement APC injection such as Early Bird APC Injection, that queue an APC to the main thread of a newly created process in alertable state. 
+There are other types of techniques to implement APC injection such as Early Bird APC Injection, that queues an APC to the main thread of a newly created process spawned in an alertable state. 
 
-Take in mind that this is not the only implementation possible. APC injection can be achieved using Standard Win32 APIs (Win32API), Native APIS (NTAPI) and Direct Syscalls (Syscall). 
+Take in mind that this is not the only implementation possible. APC injection can be achieved using Standard Win32 APIs (Win32API), Native APIS (NTAPI) and Direct Syscalls (Syscall). This will be addressed in future 
 
 # Detection challenges
 
