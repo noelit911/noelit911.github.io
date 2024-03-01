@@ -12,8 +12,6 @@ tags:
   - malware
   - payload-unleashed
 ---
-# Understanding Asynchronous Procedure Calls (APC)
-
 [Asynchronous Procedure Calls (APC)](https://learn.microsoft.com/en-us/windows/win32/sync/asynchronous-procedure-calls) are a fundamental mechanism in Windows operating systems, facilitating asynchronous execution of code within a process context. APCs are typically used for tasks like I/O completion, thread execution, and more. However, attackers exploit this mechanism to inject and execute malicious code within legitimate processes.
 
 # How APC Injection Works
