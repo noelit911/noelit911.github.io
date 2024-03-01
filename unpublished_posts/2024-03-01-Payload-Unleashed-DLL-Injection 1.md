@@ -52,7 +52,7 @@ Before delving into the code snippet, let's understand the purpose of each funct
 
 ## C Code Snippet
 
-Now, let's dive into the provided C code snippet, which demonstrates the APC injection process:
+Now, let's dive into the provided C code snippet, which demonstrates the APC injection process. Remind that not all processes are eligible for this injection, only the suspended ones.
 
 ```c
 #include <windows.h>
@@ -117,6 +117,10 @@ int main()
 ```
 
 This code snippet encapsulates the entire process of APC injection, from opening the target process to executing the malicious payload within its context. 
+
+There are other types of techniques to implement APC injection such as Early Bird APC Injection, that queue an APC to the main thread of a newly created process in alertable state. 
+
+Take in mind that this is not the only implementation possible. APC injection can be achieved using Standard Win32 APIs (Win32API), Native APIS (NTAPI) and Direct Syscalls (Syscall). 
 
 # Detection challenges
 
