@@ -28,7 +28,7 @@ Shellcode injection involves the insertion and execution of such malicious code 
    - **Code Cave**: A code cave refers to an unused or padding section of executable memory within a process. Attackers exploit these code caves to inject and execute their shellcode, often evading detection.
    - **Return-Oriented Programming (ROP)**: ROP chains leverage existing code fragments within a process, known as gadgets, to perform malicious operations. Attackers construct a sequence of gadgets that ultimately lead to the execution of the injected shellcode.
 
-To be concrete and concise, in this blog post we will only cover **Remote Thread Injection**. 
+In this blog post we will cover the **Remote Thread Injection**. 
 
 # Hands-On: Shellcode Injection with C Code Snippet 
 ## Understanding Shellcode Injection Process
@@ -115,7 +115,7 @@ int main()
 ```
 
 
-Remember to collect the desired PID of the process you want to inject the shellcode to and change it in t
+Remember to collect the desired PID of the process you want to inject the shellcode to and change it for the `<TARGET_PROCESS_ID>` variable in the OpenProcess() function call. 
 # Conclusion
 
 Shellcode injection represents a formidable challenge in the realm of cybersecurity, enabling attackers to covertly execute malicious code within legitimate processes. Understanding the intricacies of shellcode injection, along with implementing robust detection and mitigation strategies, is essential for organizations to defend against this stealthy threat. By staying vigilant and adopting a multi-layered security approach, organizations can bolster their defenses and mitigate the risks posed by shellcode injection in today's dynamic threat landscape. Explore more insights into cybersecurity challenges and solutions in our ongoing series.
