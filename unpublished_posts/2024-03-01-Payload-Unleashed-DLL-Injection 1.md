@@ -14,7 +14,7 @@ tags:
 ---
 # Understanding Asynchronous Procedure Calls (APC)
 
-Asynchronous Procedure Calls (APC) are a fundamental mechanism in Windows operating systems, facilitating asynchronous execution of code within a process context. APCs are typically used for tasks like I/O completion, thread execution, and more. However, attackers exploit this mechanism to inject and execute malicious code within legitimate processes.
+[Asynchronous Procedure Calls (APC)](https://learn.microsoft.com/en-us/windows/win32/sync/asynchronous-procedure-calls) are a fundamental mechanism in Windows operating systems, facilitating asynchronous execution of code within a process context. APCs are typically used for tasks like I/O completion, thread execution, and more. However, attackers exploit this mechanism to inject and execute malicious code within legitimate processes.
 
 # How APC Injection Works
 
@@ -129,6 +129,7 @@ While APC injection poses a formidable challenge, there are several mitigation s
 4. **API Monitoring**: Monitor system APIs for suspicious activity related to APC manipulation and injection.
 
 # Conclusion
-In this post, we've explored the intricacies of Asynchronous Procedure Calls (APC) injection, a sophisticated technique utilized by malicious actors in the realm of cybersecurity. APC injection involves surreptitiously inserting malicious code into the address space of legitimate processes, leveraging the Windows operating system's mechanism for asynchronous code execution. Despite its stealthy nature, APC injection poses significant challenges for detection, evading traditional security measures due to its minimal footprint and dynamic execution.
 
-Through a hands-on demonstration with a C code snippet, we've showcased the practical implementation of APC injection, highlighting the critical role of each function within the attack process. By understanding the mechanics of APC injection and its implications, we empower defenders and practitioners to fortify their defenses against evolving cyber threats. Stay tuned for more insights into the dynamic landscape of cybersecurity in our ongoing series, "Unraveling the Malware Mysteries."
+In this post, we've explored the Asynchronous Procedure Calls (APC) injection. APC injection involves inserting malicious code into the address space of legitimate processes, leveraging the Windows operating system's mechanism for asynchronous code execution. 
+
+Through a hands-on demonstration with a C code snippet, we've showcased the practical implementation of APC injection. Explore more in the "Unraveling the Malware Mysteries" series at [Unraveling the Malware Mysteries](https://noelit911.github.io/Unraveling-the-Malware-Mysteries/).
