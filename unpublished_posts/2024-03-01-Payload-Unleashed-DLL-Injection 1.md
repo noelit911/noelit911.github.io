@@ -1,7 +1,7 @@
 ---
 layout: single
 title: "Payload Unleashed: DLL Injection"
-date: 2024-02-29
+date: 2024-03-01
 classes: wide
 header:
   teaser: /assets/images/maldev.png
@@ -107,8 +107,8 @@ BOOL InjectDllIntoProcess(HANDLE hProcess, LPVOID allocMemAddr, HMODULE hKernel3
 void CleanupResources(HANDLE hProcess, LPVOID allocMemAddr, HANDLE hRemoteThread);
 
 int main() {
-    const char* targetProcessName = "notepad.exe"; // Change this to the name of the target process
-    const char* dllPath = "popup.dll"; // Change this to the path of your DLL
+    const char* targetProcessName = "targetProcess.exe"; // Change this to the name of the target process
+    const char* dllPath = "C:\\path\\to\\your\\injected.dll"; // Change this to the path of your DLL
 
     // Find the target process by name
     HANDLE hProcess = FindTargetProcessByName(targetProcessName);
