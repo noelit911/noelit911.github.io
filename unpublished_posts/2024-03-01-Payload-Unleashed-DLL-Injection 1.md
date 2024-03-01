@@ -118,26 +118,9 @@ int main()
 
 This code snippet encapsulates the entire process of APC injection, from opening the target process to executing the malicious payload within its context. 
 
-There are other types of techniques to implement APC injection such as Early Bird APC Injection, that queues an APC to the main thread of a newly created process spawned in an alertable state. 
+There are other types of techniques to implement APC injection, such as Early Bird APC Injection, which queues an APC to the main thread of a newly created process (spawned in an alertable state). 
 
-Take in mind that this is not the only implementation possible. APC injection can be achieved using Standard Win32 APIs (Win32API), Native APIS (NTAPI) and Direct Syscalls (Syscall). This will be addressed in future 
-
-# Detection challenges
-
-Detecting APC injection presents significant challenges for security solutions due to its stealthy nature. Traditional antivirus software and endpoint detection mechanisms often struggle to identify such attacks due to the following reasons:
-
-1. **Process Context**: Since APCs execute within the context of a legitimate process, distinguishing between legitimate and malicious APCs becomes challenging.
-2. **Dynamic Nature**: APC injection involves dynamic memory allocation and code execution, making it harder to detect using static analysis techniques.
-3. **Minimal Footprint**: Malicious APCs leave minimal footprint, making them harder to detect compared to traditional injection techniques.
-
-# Mitigation Strategies
-
-While APC injection poses a formidable challenge, there are several mitigation strategies that organizations can employ to bolster their defenses:
-
-1. **Behavioral Analysis**: Implement behavioral analysis techniques to monitor process behavior and detect anomalous activity indicative of APC injection.
-2. **Code Signing**: Enforce code signing policies to ensure that only trusted code can be executed within processes, thereby preventing the execution of unsigned or malicious code.
-3. **Memory Protection**: Employ memory protection mechanisms such as Data Execution Prevention (DEP) and Address Space Layout Randomization (ASLR) to mitigate the impact of memory-based attacks.
-4. **API Monitoring**: Monitor system APIs for suspicious activity related to APC manipulation and injection.
+Take in mind that this is not the only possible implementation, APC injection can be implemented using Standard Win32 APIs (Win32API), Native APIS (NTAPI) and Direct Syscalls (Syscall). To do not mess things up, we will be addressed this injection flavors in future blog posts. 
 
 # Conclusion
 
