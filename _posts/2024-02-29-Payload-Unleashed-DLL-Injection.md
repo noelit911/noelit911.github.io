@@ -209,7 +209,11 @@ void CleanupResources(HANDLE hProcess, LPVOID allocMemAddr, HANDLE hRemoteThread
 }
 ```
 
-Replace `"targetProcess.exe"` with the name of the target process you want to inject the DLL into, and `"C:\\path\\to\\your\\injected.dll"` with the path to the DLL you want to inject.
+Replace `"notepad.exe"` with the name of the target process you want to inject the DLL into, and `"popup.dll"` with the path to the DLL you want to inject.
+
+Take in mind that creating or trying to modify a process running with high privilege's permissions will result in the script failing. 
 # Conclusion
 ---------------
-DLL injection is a powerful technique with both legitimate and malicious applications. While it offers benefits such as extending the functionality of applications and facilitating system monitoring and debugging, it also poses significant security risks when exploited by malicious actors. Understanding the mechanics of DLL injection, including the various injection methods and the Windows API functions involved, is essential for both software developers and cybersecurity professionals. By implementing robust security measures, such as access controls, code signing, and runtime monitoring, developers can mitigate the risks associated with DLL injection and ensure the integrity and security of their software systems. Additionally, security professionals must remain vigilant and employ detection and mitigation strategies to defend against DLL injection attacks and safeguard critical systems and data. Ultimately, responsible use and comprehensive defense mechanisms are crucial for effectively managing the complexities of DLL injection in today's digital landscape.
+DLL injection is a powerful technique with both legitimate and malicious applications. While it offers benefits such as extending the functionality of applications and facilitating system monitoring and debugging, it also poses significant security risks. 
+
+In this post we learned how to inject a custom DLL into a remote process  
