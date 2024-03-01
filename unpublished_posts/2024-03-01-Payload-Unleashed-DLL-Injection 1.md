@@ -28,6 +28,12 @@ The injection process typically follows these steps:
 4. **APC Queuing**: A fake APC is queued to the target process, pointing to the address of the malicious code.
 5. **Execution**: When the target process enters an alertable state, the queued APC is executed, leading to the execution of the malicious payload.
 
+## Alertable state
+
+Asynchronous Procedure Calls (APCs) are kernel-mode routines executed within the context of a specific thread. Malware can exploit APCs to queue a payload, which then executes when scheduled.
+
+Threads capable of running a queued APC function must be in an alertable state. This state is achieved when a thread is in a wait state, enabling it to process queued APC functions. To place a thread in an alertable state, WinAPI functions such as SleepEx, MsgWaitForMultipleObjectsEx, WaitForSingleObjectEx, WaitForMultipleObjectsEx, or SignalObjectAndWait can be used. These functions are typically utilized for thread synchronization and application responsiveness enhancement. However, in this context, merely passing a handle to a dummy event suffices.
+
 # Hands-On: APC Injection with C Code Snippet
 
 ## Understanding the APC Injection Process
