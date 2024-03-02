@@ -1,6 +1,6 @@
 ---
 layout: single
-title: "Payload Unleashed: DLL Injection"
+title: "Payload Unleashed: APC Injection"
 date: 2024-03-02
 classes: wide
 header:
