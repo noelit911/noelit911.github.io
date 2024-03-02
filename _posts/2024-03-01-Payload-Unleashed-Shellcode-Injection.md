@@ -1,6 +1,6 @@
 ---
 layout: single
-title: "Payload Unleashed: DLL Injection"
+title: "Payload Unleashed: Shellcode Injection"
 date: 2024-03-01
 classes: wide
 header:
